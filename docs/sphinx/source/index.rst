@@ -1113,19 +1113,8 @@ UHD Blocks
    :nosignatures:
 
    gnuradio.uhd.amsg_source
-   gnuradio.uhd.usrp_sink
    gnuradio.uhd.usrp_source
-
-
-Video Blocks
-------------
-
-.. autosummary::
-   :nosignatures:
-
-   gnuradio.video_sdl.sink_s
-   gnuradio.video_sdl.sink_uc
-
+   gnuradio.uhd.usrp_sink
 
 
 Waveform Generator Blocks
