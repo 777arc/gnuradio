@@ -25,6 +25,7 @@ import os
 import subprocess
 
 from gi.repository import Gtk, Gio, GLib, GObject
+from getpass import getuser
 
 from . import Constants, Dialogs, Actions, Executor, FileDialogs, Utils, Bars
 
@@ -203,6 +204,7 @@ class Application(Gtk.Application):
                 Actions.TOGGLE_FLOW_GRAPH_VAR_EDITOR,
                 Actions.TOGGLE_FLOW_GRAPH_VAR_EDITOR_SIDEBAR,
                 Actions.TOGGLE_HIDE_VARIABLES,
+                Actions.TOGGLE_SHOW_BLOCK_IDS,
             ):
                 action.set_enabled(True)
                 if hasattr(action, 'load_from_preferences'):
@@ -511,6 +513,12 @@ class Application(Gtk.Application):
             action.save_to_preferences()
             varedit.save_to_preferences()
             flow_graph_update()
+        elif action == Actions.TOGGLE_SHOW_BLOCK_IDS:
+            action.set_active(not action.get_active())
+            active = action.get_active()
+            Actions.NOTHING_SELECT()
+            action.save_to_preferences()
+            flow_graph_update()
         elif action == Actions.TOGGLE_FLOW_GRAPH_VAR_EDITOR:
             # TODO: There may be issues at startup since these aren't triggered
             # the same was as Gtk.Actions when loading preferences.
@@ -595,13 +603,14 @@ class Application(Gtk.Application):
             main.new_page()
             args = (GLib.Variant('s', 'qt_gui'),)
             flow_graph = main.current_page.flow_graph
-            flow_graph._options_block.params['generate_options'].set_value(str(args[0])[1:-1])
+            flow_graph.options_block.params['generate_options'].set_value(str(args[0])[1:-1])
+            flow_graph.options_block.params['author'].set_value(getuser())
             flow_graph_update(flow_graph)
         elif action == Actions.FLOW_GRAPH_NEW_TYPE:
             main.new_page()
             if args:
                 flow_graph = main.current_page.flow_graph
-                flow_graph._options_block.params['generate_options'].set_value(str(args[0])[1:-1])
+                flow_graph.options_block.params['generate_options'].set_value(str(args[0])[1:-1])
                 flow_graph_update(flow_graph)
         elif action == Actions.FLOW_GRAPH_OPEN:
             file_paths = args[0] if args[0] else FileDialogs.OpenFlowGraph(main, page.file_path).run()
@@ -637,7 +646,13 @@ class Application(Gtk.Application):
                     page.saved = False
         elif action == Actions.FLOW_GRAPH_SAVE_AS:
             file_path = FileDialogs.SaveFlowGraph(main, page.file_path).run()
+
             if file_path is not None:
+                if flow_graph.options_block.params['id'].get_value() == 'default':
+                    file_name = os.path.basename(file_path).replace(".grc", "")
+                    flow_graph.options_block.params['id'].set_value(file_name)
+                    flow_graph_update(flow_graph)
+
                 page.file_path = os.path.abspath(file_path)
                 try:
                     self.platform.save_flow_graph(page.file_path, flow_graph)
@@ -802,8 +817,8 @@ class Application(Gtk.Application):
 
         Actions.BLOCK_CREATE_HIER.set_enabled(bool(selected_blocks))
         Actions.OPEN_HIER.set_enabled(bool(selected_blocks))
-        #Actions.BUSSIFY_SOURCES.set_enabled(bool(selected_blocks))
-        #Actions.BUSSIFY_SINKS.set_enabled(bool(selected_blocks))
+        Actions.BUSSIFY_SOURCES.set_enabled(bool(selected_blocks))
+        Actions.BUSSIFY_SINKS.set_enabled(bool(selected_blocks))
         Actions.RELOAD_BLOCKS.enable()
         Actions.FIND_BLOCKS.enable()
 

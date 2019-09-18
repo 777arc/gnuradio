@@ -29,29 +29,31 @@ class CppTopBlockGenerator(TopBlockGenerator):
 
     def __init__(self, flow_graph, file_path):
         """
-        Initialize the top block generator object.
+        Initialize the C++ top block generator object.
 
         Args:
             flow_graph: the flow graph object
-            file_path: the path to write the file to
+            file_path: the path where we want to create
+                a new directory with C++ files
         """
 
         self._flow_graph = FlowGraphProxy(flow_graph)
         self._generate_options = self._flow_graph.get_option('generate_options')
 
         self._mode = TOP_BLOCK_FILE_MODE
-        dirname = os.path.dirname(file_path)
         # Handle the case where the directory is read-only
         # In this case, use the system's temp directory
-        if not os.access(dirname, os.W_OK):
-            dirname = tempfile.gettempdir()
+        if not os.access(file_path, os.W_OK):
+            file_path = tempfile.gettempdir()
 
+        # When generating C++ code, we create a new directory
+        # (file_path) and generate the files inside that directory
         filename = self._flow_graph.get_option('id')
-        self.file_path = os.path.join(dirname, filename)
-        self._dirname = dirname
+        self.file_path = os.path.join(file_path, filename)
+        self._dirname = file_path
 
     def write(self):
-        """generate output and write it to files"""
+        """create directory, generate output and write it to files"""
         self._warnings()
 
         fg = self._flow_graph
@@ -153,6 +155,15 @@ class CppTopBlockGenerator(TopBlockGenerator):
         filename = 'CMakeLists.txt'
         file_path = os.path.join(self.file_path, filename)
 
+        cmake_tuples = []
+        cmake_opt = self._flow_graph.get_option("cmake_opt")
+        cmake_opt = " " + cmake_opt # To make sure we get rid of the "-D"s when splitting
+
+        for opt_string in cmake_opt.split(" -D"):
+            opt_string = opt_string.strip()
+            if opt_string:
+                cmake_tuples.append(tuple(opt_string.split("=")))
+
         output = []
 
         flow_graph_code = cmake_template.render(
@@ -162,6 +173,7 @@ class CppTopBlockGenerator(TopBlockGenerator):
             callbacks=self._callbacks(),
             connections=self._connections(),
             links=self._links(),
+            cmake_tuples=cmake_tuples,
             **self.namespace
         )
         # strip trailing white-space
@@ -230,7 +242,7 @@ class CppTopBlockGenerator(TopBlockGenerator):
             make = block.cpp_templates.render('make')
             declarations = block.cpp_templates.render('declarations')
             if translations:
-                translations = yaml.load(translations)
+                translations = yaml.safe_load(translations)
             else:
                 translations = {}
             translations.update(
@@ -353,9 +365,30 @@ class CppTopBlockGenerator(TopBlockGenerator):
         rendered = []
         for con in sorted(connections, key=by_domain_and_blocks):
             template = templates[con.type]
-            code = template.render(make_port_sig=make_port_sig, source=con.source_port, sink=con.sink_port)
-            if not self._generate_options.startswith('hb'):
-                code = 'this->tb->' + code
-            rendered.append(code)
+
+            if con.source_port.dtype != 'bus':
+                code = template.render(make_port_sig=make_port_sig, source=con.source_port, sink=con.sink_port)
+                if not self._generate_options.startswith('hb'):
+                    code = 'this->tb->' + code
+                rendered.append(code)
+            else:
+                # Bus ports need to iterate over the underlying connections and then render
+                # the code for each subconnection
+                porta = con.source_port
+                portb = con.sink_port
+                fg = self._flow_graph
+                             
+                if porta.dtype == 'bus' and portb.dtype == 'bus':
+                    # which bus port is this relative to the bus structure
+                    if len(porta.bus_structure) == len(portb.bus_structure):
+                        for port_num in porta.bus_structure:
+                            hidden_porta = porta.parent.sources[port_num]
+                            hidden_portb = portb.parent.sinks[port_num]
+                            connection = fg.parent_platform.Connection(
+                                parent=self, source=hidden_porta, sink=hidden_portb)
+                            code = template.render(make_port_sig=make_port_sig, source=hidden_porta, sink=hidden_portb)
+                            if not self._generate_options.startswith('hb'):
+                                code = 'this->tb->' + code
+                            rendered.append(code)
 
         return rendered

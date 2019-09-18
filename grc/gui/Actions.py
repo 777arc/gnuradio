@@ -49,11 +49,11 @@ class Namespace(object):
                  icon_name=None, keypresses=None, preference_name=None, default=None):
         # Check types
         if not isinstance(name, str):
-            raise TypeError("Cannot register fuction: 'name' must be a str")
+            raise TypeError("Cannot register function: 'name' must be a str")
         if parameter and not isinstance(parameter, str):
-            raise TypeError("Cannot register fuction: 'parameter' must be a str")
+            raise TypeError("Cannot register function: 'parameter' must be a str")
         if handler and not callable(handler):
-            raise TypeError("Cannot register fuction: 'handler' must be callable")
+            raise TypeError("Cannot register function: 'handler' must be callable")
 
         # Check if the name has a prefix.
         prefix = None
@@ -398,6 +398,12 @@ TOGGLE_HIDE_VARIABLES = actions.register("win.hide_variables",
     label='Hide Variables',
     tooltip='Hide all variable blocks',
     preference_name='hide_variables',
+    default=False,
+)
+TOGGLE_SHOW_BLOCK_IDS = actions.register("win.show_block_ids",
+    label='Show All Block IDs',
+    tooltip='Show all the block IDs',
+    preference_name='show_block_ids',
     default=False,
 )
 TOGGLE_FLOW_GRAPH_VAR_EDITOR = actions.register("win.toggle_variable_editor",

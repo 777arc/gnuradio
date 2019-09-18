@@ -57,6 +57,7 @@ class PropsDialog(Gtk.Dialog):
 
         self._block = block
         self._hash = 0
+        self._config = parent.config
 
         vpaned = Gtk.VPaned()
         self.vbox.pack_start(vpaned, True, True, 0)
@@ -179,7 +180,11 @@ class PropsDialog(Gtk.Dialog):
                     # child.destroy()   # disabled because it throws errors...
                 # repopulate the params box
                 box_all_valid = True
+                force_show_id = Actions.TOGGLE_SHOW_BLOCK_IDS.get_active()
+
                 for param in self._block.params.values():
+                    if force_show_id and param.dtype == 'id':
+                        param.hide = 'none'
                     # todo: why do we even rebuild instead of really hiding params?
                     if param.category != category or param.hide == 'all':
                         continue
@@ -210,6 +215,12 @@ class PropsDialog(Gtk.Dialog):
         buf = self._docs_text_display.get_buffer()
         buf.delete(buf.get_start_iter(), buf.get_end_iter())
         pos = buf.get_end_iter()
+
+        # Add link to wiki page for this block, at the top
+        note = "Wiki Page for this Block: "
+        prefix = self._config.wiki_block_docs_url_prefix
+        suffix = self._block.label.replace(" ", "_")
+        buf.insert(pos, note + prefix + suffix + '\n\n')
 
         docstrings = self._block.documentation.copy()
         if not docstrings:
