@@ -37,10 +37,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-
-#ifdef GR_CTRLPORT
 #include <gnuradio/rpcregisterhelpers.h>
-#endif
 
 namespace gr {
 
