@@ -209,9 +209,9 @@ if(MSVC)
     target_sources(gnuradio-blocks PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gnuradio-blocks.rc)
 endif(MSVC)
 
-if(BUILD_SHARED_LIBS)
-    gr_library_foo(gnuradio-blocks)
-endif()
+# Register for install/export in both shared and static builds so downstream
+# modules' export sets can reference gnuradio-blocks (WASM/static).
+gr_library_foo(gnuradio-blocks)
 
 ########################################################################
 # QA C++ Code for gr-blocks

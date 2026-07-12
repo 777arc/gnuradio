@@ -62,9 +62,9 @@ if(MSVC)
 
 endif(MSVC)
 
-if(BUILD_SHARED_LIBS)
-    gr_library_foo(gnuradio-analog)
-endif()
+# Register for install/export in both shared and static builds so downstream
+# modules' export sets can reference gnuradio-analog (WASM/static).
+gr_library_foo(gnuradio-analog)
 
 ########################################################################
 # QA C++ Code for gr-analog

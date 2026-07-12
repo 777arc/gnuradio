@@ -41,6 +41,15 @@ namespace fs = std::filesystem;
 namespace gr {
 namespace fft {
 
+// FFTW_MEASURE benchmarks candidate plans by running the transform many times to
+// find the fastest — this effectively hangs under WASM/Emscripten. Use the
+// non-benchmarking FFTW_ESTIMATE there (instant planning, slightly slower exec).
+#ifdef __EMSCRIPTEN__
+#define GR_FFT_PLAN_FLAG FFTW_ESTIMATE
+#else
+#define GR_FFT_PLAN_FLAG FFTW_MEASURE
+#endif
+
 constexpr const char* WISDOM_FILENAME = "fftw_wisdom";
 constexpr const char* WISDOM_LOCKFILE = "fftw_wisdom.lock";
 
@@ -182,7 +191,7 @@ void fft<gr_complex, true>::initialize_plan(int fft_size, int nffts)
                                  1,
                                  fft_size,
                                  FFTW_FORWARD,
-                                 FFTW_MEASURE);
+                                 GR_FFT_PLAN_FLAG);
 }
 
 template <>
@@ -200,7 +209,7 @@ void fft<gr_complex, false>::initialize_plan(int fft_size, int nffts)
                                  1,
                                  fft_size,
                                  FFTW_BACKWARD,
-                                 FFTW_MEASURE);
+                                 GR_FFT_PLAN_FLAG);
 }
 
 
@@ -218,7 +227,7 @@ void fft<float, true>::initialize_plan(int fft_size, int nffts)
                                      NULL,
                                      1,
                                      fft_size,
-                                     FFTW_MEASURE);
+                                     GR_FFT_PLAN_FLAG);
 }
 
 template <>
@@ -235,7 +244,7 @@ void fft<float, false>::initialize_plan(int fft_size, int nffts)
                                      NULL,
                                      1,
                                      fft_size,
-                                     FFTW_MEASURE);
+                                     GR_FFT_PLAN_FLAG);
 }
 
 

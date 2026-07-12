@@ -32,6 +32,8 @@ if(MSVC)
     target_sources(gnuradio-pmt PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gnuradio-pmt.rc)
 endif(MSVC)
 
-if(BUILD_SHARED_LIBS)
-    gr_library_foo(gnuradio-pmt Volk::volk)
-endif()
+# gnuradio-pmt must be registered for install/export in BOTH shared and static
+# builds; otherwise the gnuradio-runtime export set references gnuradio-pmt while
+# it is absent from any export set (breaks static/WASM builds). Shared builds are
+# unaffected (gr_library_foo was already called for them).
+gr_library_foo(gnuradio-pmt Volk::volk)

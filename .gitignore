@@ -3,3 +3,8 @@
 *.pyo
 build*/
 .venv/*
+wasm/.venv
+wasm/deps
+wasm/sysroot
+wasm/chrome-headless-shell
+wasm/node_modules

@@ -46,9 +46,9 @@ if(MSVC)
     target_sources(gnuradio-fft PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gnuradio-fft.rc)
 endif(MSVC)
 
-if(BUILD_SHARED_LIBS)
-    gr_library_foo(gnuradio-fft)
-endif()
+# Register for install/export in both shared and static builds so downstream
+# modules' export sets (e.g. gnuradio-filter) can reference gnuradio-fft (WASM).
+gr_library_foo(gnuradio-fft)
 
 if(ENABLE_TESTING)
     include(GrTest)
