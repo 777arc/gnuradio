@@ -20,6 +20,11 @@
 #ifdef __OpenBSD__
 #include <pthread_np.h>
 #endif
+#elif defined(__EMSCRIPTEN__)
+// WebAssembly/Emscripten: pthreads via web workers, but no prctl, thread
+// affinity, or thread naming. Route those to the "not implemented" fallbacks.
+#define __GR_TARGET_WASM__
+#include <pthread.h>
 #else
 #define __GR_TARGET_DEFAULT__
 #include <pthread.h>
@@ -45,7 +50,8 @@ gr::logger& thread_logger()
 
 gr_thread_t get_current_thread_id()
 {
-#if defined(__GR_TARGET_DEFAULT__) || defined(__GR_TARGET_BSD__)
+#if defined(__GR_TARGET_DEFAULT__) || defined(__GR_TARGET_BSD__) || \
+    defined(__GR_TARGET_WASM__)
     return pthread_self();
 #elif defined(__GR_TARGET_WIN__)
     return GetCurrentThread();

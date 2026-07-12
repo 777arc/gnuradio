@@ -136,8 +136,14 @@ target_link_libraries(
         spdlog::spdlog
         MPLib::mplib
     PRIVATE
-        Boost::program_options
-        libunwind::libunwind)
+        Boost::program_options)
+
+# libunwind is optional: its imported target carries the HAVE_LIBUNWIND interface
+# definition that enables backtraces in terminate_handler.cc. When it is absent
+# (e.g. WASM/Emscripten builds), skip it and HAVE_LIBUNWIND stays undefined.
+if(TARGET libunwind::libunwind)
+    target_link_libraries(gnuradio-runtime PRIVATE libunwind::libunwind)
+endif()
 
 # Address linker issues with std::filesystem on Centos 8 and Debian
 target_link_libraries(

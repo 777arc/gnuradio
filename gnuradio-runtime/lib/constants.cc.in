@@ -27,12 +27,19 @@ const std::string prefix()
     if (prefix != NULL)
         return prefix;
 
+#ifdef __EMSCRIPTEN__
+    // WASM/Emscripten has no dynamic-library self-introspection, so
+    // boost::dll::this_line_location() throws "Bad address". Return a fixed
+    // virtual prefix; runtime prefs simply fall back to built-in defaults.
+    return "/usr/local";
+#else
     path prefix_rel_lib = "@prefix_relative_to_lib@";
     path gr_runtime_lib_path = boost::dll::this_line_location().string();
     // Canonize before decomposing path so result is reliable and without symlinks
     path canonical_lib_path = std::filesystem::canonical(gr_runtime_lib_path);
     path prefix_path = canonical_lib_path.parent_path() / prefix_rel_lib;
     return prefix_path.lexically_normal().string();
+#endif
 }
 
 const std::string sysconfdir()
