@@ -153,7 +153,14 @@ void DisplayForm::mousePressEvent(QMouseEvent* e)
         for (unsigned int i = 0; i < d_nplots; ++i) {
             d_lines_menu[i]->setTitle(d_display_plot->getLineLabel(i));
         }
+#ifdef __EMSCRIPTEN__
+        // QMenu::exec() starts a nested event loop, which cannot block the browser
+        // main thread in a non-Asyncify WASM build. popup() provides the same menu
+        // without waiting synchronously for it to close.
+        d_menu->popup(e->globalPosition().toPoint());
+#else
         d_menu->exec(e->globalPos());
+#endif
     }
 }
 
