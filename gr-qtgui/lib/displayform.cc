@@ -13,6 +13,25 @@
 #include <QFileDialog>
 #include <QPixmap>
 
+namespace {
+
+void savePixmap(const QPixmap& pixmap, const QString& filename, const QString& filetype)
+{
+    if (filetype.contains(".jpg")) {
+        pixmap.save(filename + ".jpg", "JPEG");
+    } else if (filetype.contains(".png")) {
+        pixmap.save(filename + ".png", "PNG");
+    } else if (filetype.contains(".bmp")) {
+        pixmap.save(filename + ".bmp", "BMP");
+    } else if (filetype.contains(".tiff")) {
+        pixmap.save(filename + ".tiff", "TIFF");
+    } else {
+        pixmap.save(filename + ".jpg", "JPEG");
+    }
+}
+
+} // namespace
+
 DisplayForm::DisplayForm(int nplots, QWidget* parent)
     : QWidget(parent), d_nplots(nplots), d_system_specified_flag(false)
 {
@@ -296,16 +315,30 @@ void DisplayForm::setAxisLabels(bool en)
 
 void DisplayForm::saveFigure()
 {
-    QPixmap qpix = this->grab();
+    const QPixmap qpix = this->grab();
 
-    QString types = QString(tr("JPEG file (*.jpg);;Portable Network Graphics file "
-                               "(*.png);;Bitmap file (*.bmp);;TIFF file (*.tiff)"));
+    const QString types =
+        QString(tr("JPEG file (*.jpg);;Portable Network Graphics file "
+                   "(*.png);;Bitmap file (*.bmp);;TIFF file (*.tiff)"));
 
-    QString filename, filetype;
-    QFileDialog* filebox = new QFileDialog(0, "Save Image", "./", types);
+    QFileDialog* filebox = new QFileDialog(this, "Save Image", "./", types);
     filebox->setViewMode(QFileDialog::Detail);
     filebox->setAcceptMode(QFileDialog::AcceptSave);
     filebox->setFileMode(QFileDialog::AnyFile);
+
+#ifdef __EMSCRIPTEN__
+    // QFileDialog::exec() starts a nested event loop, which is unsupported on
+    // the browser main thread without Asyncify. Keep the captured pixmap alive
+    // and save it when the asynchronous dialog is accepted.
+    filebox->setAttribute(Qt::WA_DeleteOnClose);
+    connect(filebox, &QFileDialog::accepted, this, [filebox, qpix]() {
+        const QStringList files = filebox->selectedFiles();
+        if (!files.empty())
+            savePixmap(qpix, files.front(), filebox->selectedNameFilter());
+    });
+    filebox->open();
+#else
+    QString filename, filetype;
     if (filebox->exec()) {
         filename = filebox->selectedFiles()[0];
         filetype = filebox->selectedNameFilter();
@@ -313,19 +346,9 @@ void DisplayForm::saveFigure()
         return;
     }
 
-    if (filetype.contains(".jpg")) {
-        qpix.save(filename + ".jpg", "JPEG");
-    } else if (filetype.contains(".png")) {
-        qpix.save(filename + ".png", "PNG");
-    } else if (filetype.contains(".bmp")) {
-        qpix.save(filename + ".bmp", "BMP");
-    } else if (filetype.contains(".tiff")) {
-        qpix.save(filename + ".tiff", "TIFF");
-    } else {
-        qpix.save(filename + ".jpg", "JPEG");
-    }
-
+    savePixmap(qpix, filename, filetype);
     delete filebox;
+#endif
 }
 
 void DisplayForm::disableLegend() { d_display_plot->disableLegend(); }

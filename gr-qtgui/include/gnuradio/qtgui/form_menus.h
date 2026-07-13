@@ -442,7 +442,17 @@ signals:
     void whichTrigger(unsigned int which, const QString& text);
 
 public slots:
-    void getTextDiag() { d_diag->exec(); }
+    void getTextDiag()
+    {
+#ifdef __EMSCRIPTEN__
+        // A nested event loop cannot block the browser main thread in a
+        // non-Asyncify WASM build. open() preserves modality while returning
+        // immediately to the browser event loop.
+        d_diag->open();
+#else
+        d_diag->exec();
+#endif
+    }
 
 private slots:
     void getText()
