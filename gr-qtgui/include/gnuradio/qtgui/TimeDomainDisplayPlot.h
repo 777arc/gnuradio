@@ -83,8 +83,17 @@ private:
     void _resetXAxisPoints();
     void _autoScale(double bottom, double top);
 
+#ifdef __EMSCRIPTEN__
+    void _updateWasmRenderData();
+#endif
+
     std::vector<std::vector<double>> d_ydata;
     std::vector<double> d_xdata;
+
+#ifdef __EMSCRIPTEN__
+    std::vector<std::vector<double>> d_render_xdata;
+    std::vector<std::vector<double>> d_render_ydata;
+#endif
 
     double d_sample_rate;
 
