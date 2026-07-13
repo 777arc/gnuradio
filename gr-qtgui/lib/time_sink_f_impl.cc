@@ -22,10 +22,31 @@
 #include <qwt_symbol.h>
 #include <volk/volk.h>
 
+#ifdef __EMSCRIPTEN__
+#include <QCoreApplication>
+#endif
+
 #include <cstring>
 
 namespace gr {
 namespace qtgui {
+
+namespace {
+
+void post_time_update(QApplication* application,
+                      TimeDisplayForm* display,
+                      TimeUpdateEvent* event)
+{
+#ifdef __EMSCRIPTEN__
+    // Browser painting can fall behind the flowgraph worker.  A time display only
+    // needs the newest frame, so discard an older frame that is still queued rather
+    // than letting latency grow while the GUI renders stale data.
+    QCoreApplication::removePostedEvents(display, TimeUpdateEvent::Type());
+#endif
+    application->postEvent(display, event);
+}
+
+} // namespace
 
 time_sink_f::sptr time_sink_f::make(int size,
                                     double samp_rate,
@@ -535,8 +556,9 @@ int time_sink_f_impl::work(int noutput_items,
         // Plot if we are able to update
         if (gr::high_res_timer_now() - d_last_time > d_update_time) {
             d_last_time = gr::high_res_timer_now();
-            d_qApplication->postEvent(d_main_gui,
-                                      new TimeUpdateEvent(d_buffers, d_size, d_tags));
+            post_time_update(d_qApplication,
+                             d_main_gui,
+                             new TimeUpdateEvent(d_buffers, d_size, d_tags));
         }
 
         // We've plotting, so reset the state
@@ -609,7 +631,8 @@ void time_sink_f_impl::handle_pdus(pmt::pmt_t msg)
 
         volk_32f_convert_64f(d_buffers[d_nconnections].data(), in, len);
 
-        d_qApplication->postEvent(d_main_gui, new TimeUpdateEvent(d_buffers, len, t));
+        post_time_update(
+            d_qApplication, d_main_gui, new TimeUpdateEvent(d_buffers, len, t));
     }
 }
 

@@ -15,6 +15,7 @@
 #include <gnuradio/qtgui/TimeDomainDisplayPlot.h>
 
 #include <qwt_legend.h>
+#include <qwt_plot_canvas.h>
 #include <qwt_scale_draw.h>
 #include <QColor>
 #include <cmath>
@@ -72,6 +73,15 @@ private:
 TimeDomainDisplayPlot::TimeDomainDisplayPlot(int nplots, QWidget* parent)
     : DisplayPlot(nplots, parent), d_xdata(1024)
 {
+#ifdef __EMSCRIPTEN__
+    // Keep live plots out of the browser's deferred paint queue and avoid Qwt's
+    // full-canvas backing pixmap, which is expensive to recreate in WASM.
+    if (auto* plot_canvas = qobject_cast<QwtPlotCanvas*>(canvas())) {
+        plot_canvas->setPaintAttribute(QwtPlotCanvas::ImmediatePaint, true);
+        plot_canvas->setPaintAttribute(QwtPlotCanvas::BackingStore, false);
+    }
+#endif
+
     d_numPoints = d_xdata.size();
 
     d_zoomer = new TimeDomainDisplayZoomer(canvas(), 0);
@@ -117,7 +127,14 @@ TimeDomainDisplayPlot::TimeDomainDisplayPlot(int nplots, QWidget* parent)
         d_plot_curve.push_back(new QwtPlotCurve(QString("Data %1").arg(i)));
         d_plot_curve[i]->attach(this);
         d_plot_curve[i]->setPen(QPen(colors[i]));
+#ifdef __EMSCRIPTEN__
+        // Qt's antialiased polyline rasterizer is disproportionately expensive on
+        // the browser canvas.  Preserve extrema while reducing redundant points.
+        d_plot_curve[i]->setRenderHint(QwtPlotItem::RenderAntialiased, false);
+        d_plot_curve[i]->setPaintAttribute(QwtPlotCurve::FilterPointsAggressive, true);
+#else
         d_plot_curve[i]->setRenderHint(QwtPlotItem::RenderAntialiased);
+#endif
 
         QwtSymbol* symbol = new QwtSymbol(
             QwtSymbol::NoSymbol, QBrush(colors[i]), QPen(colors[i]), QSize(7, 7));
