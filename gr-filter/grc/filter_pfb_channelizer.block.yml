@@ -67,8 +67,7 @@ cpp_templates:
         this->${id} = pfb::channelizer_ccf::make(
             ${nchans},
             taps,
-            ${osr},
-            ${atten});
+            ${osr});
         this->${id}.set_channel_map(${ch_map});
         this->${id}.declare_sample_delay(${samp_delay});
     link: ['gnuradio::gnuradio-filter']

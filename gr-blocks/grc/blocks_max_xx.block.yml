@@ -48,7 +48,7 @@ templates:
 cpp_templates:
     includes: ['#include <gnuradio/blocks/max_blk.h>']
     declarations: 'blocks::max_${type.fcn}::sptr ${id};'
-    make: 'this->${id} = blocks::make_${type.fcn}::make(${vlen}, ${vlen_out});'
+    make: 'this->${id} = blocks::max_${type.fcn}::make(${vlen}, ${vlen_out});'
 
 documentation: |-
     Compares vectors from multiple streams and determines the maximum value from each vector over all streams.

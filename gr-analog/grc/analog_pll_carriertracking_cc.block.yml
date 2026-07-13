@@ -30,7 +30,7 @@ templates:
     - set_min_freq(${min_freq})
 
 cpp_templates:
-    includes: ['#include <gnuradio/analog/pll_carriertracking_${type.fcn}.h>']
+    includes: ['#include <gnuradio/analog/pll_carriertracking_cc.h>']
     make: 'this->${id} = analog::pll_carriertracking_cc::make(${w}, ${max_freq}, ${min_freq});'
     callbacks:
     - set_loop_bandwidth(${w})

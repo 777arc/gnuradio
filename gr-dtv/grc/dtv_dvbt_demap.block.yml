@@ -27,7 +27,7 @@ parameters:
         val: [dtv.T2k, dtv.T8k]
 -   id: gain
     label: Gain
-    dtype: complex
+    dtype: real
     default: '1'
 
 inputs:

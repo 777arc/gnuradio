@@ -36,7 +36,7 @@ templates:
 cpp_templates:
     includes: ['#include <gnuradio/blocks/mute.h>']
     declarations: 'blocks::mute_${type.fcn}::sptr ${id};'
-    make: 'this->${id} = blocks::mute_${type.fcn}::(bool(${mute}));'
+    make: 'this->${id} = blocks::mute_${type.fcn}::make(bool(${mute}));'
     callbacks:
     - set_mute(bool(${mute}))
 

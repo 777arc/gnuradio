@@ -54,7 +54,7 @@ cpp_templates:
     includes: ['#include <gnuradio/digital/clock_recovery_mm_${type.fcn}.h>']
     declarations: 'digital::clock_recovery_mm_${type.fcn}::sptr ${id};'
     make: |-
-        this->${id} = digital::clock_recovery_mm_${in_type.fcn}::make(
+        this->${id} = digital::clock_recovery_mm_${type.fcn}::make(
             ${omega},
             ${gain_omega},
             ${mu},

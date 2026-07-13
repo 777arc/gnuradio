@@ -134,7 +134,7 @@ cpp_templates:
             % elif str(format) == 'FORMAT_FLAC':
             ${False}
             % elif str(format) == 'FORMAT_OGG':
-            ${False},
+            ${False}
             % elif str(format) == 'FORMAT_RF64':
             ${append}
             % endif

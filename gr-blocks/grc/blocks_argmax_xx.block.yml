@@ -8,7 +8,7 @@ parameters:
     dtype: enum
     options: [float, int, short]
     option_attributes:
-        fcn: [fs, is, dd]
+        fcn: [fs, is, ss]
     hide: part
 -   id: num_inputs
     label: Num Inputs
