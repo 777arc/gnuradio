@@ -17,6 +17,8 @@
 #include <gnuradio/buffer_double_mapped.h>
 #include <gnuradio/buffer_reader.h>
 #include <gnuradio/random.h>
+#include "vmcircbuf.h"
+#include "vmcircbuf_emulated.h"
 #include <boost/test/unit_test.hpp>
 
 
@@ -263,3 +265,19 @@ BOOST_AUTO_TEST_CASE(t1) { leak_check(t1_body); }
 BOOST_AUTO_TEST_CASE(t2) { leak_check(t2_body); }
 
 BOOST_AUTO_TEST_CASE(t3) { leak_check(t3_body); }
+
+BOOST_AUTO_TEST_CASE(t2_emulated)
+{
+    auto* previous_factory = gr::vmcircbuf_sysconfig::get_default_factory();
+    gr::vmcircbuf_sysconfig::set_default_factory(
+        gr::vmcircbuf_emulated_factory::singleton(), false);
+
+    try {
+        leak_check(t2_body);
+    } catch (...) {
+        gr::vmcircbuf_sysconfig::set_default_factory(previous_factory, false);
+        throw;
+    }
+
+    gr::vmcircbuf_sysconfig::set_default_factory(previous_factory, false);
+}

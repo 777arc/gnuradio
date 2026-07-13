@@ -56,6 +56,8 @@ public:
     void post_work([[maybe_unused]] int nitems) override {}
 
 protected:
+    void commit_write(int nitems) override;
+
     /*!
      * sets d_vmcircbuf, d_base, d_bufsize.
      * returns true iff successful.

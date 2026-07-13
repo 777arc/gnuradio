@@ -91,6 +91,16 @@ buffer_sptr buffer_double_mapped::make_buffer(int nitems,
 
 buffer_double_mapped::~buffer_double_mapped() {}
 
+void buffer_double_mapped::commit_write(int nitems)
+{
+    // Derived double-mapped buffers that use defer_alloc_t provide their own
+    // coherent storage and intentionally leave d_vmcircbuf empty.
+    if (nitems > 0 && d_vmcircbuf) {
+        d_vmcircbuf->commit_write(d_write_index * d_sizeof_item,
+                                  static_cast<size_t>(nitems) * d_sizeof_item);
+    }
+}
+
 /*!
  * sets d_vmcircbuf, d_base, d_bufsize.
  * returns true iff successful.

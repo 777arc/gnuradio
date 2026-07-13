@@ -282,6 +282,14 @@ public:
 
 protected:
     /*!
+     * \brief Finalize a write before its index is published to readers.
+     *
+     * Called by update_write_pointer() with the buffer mutex held and with
+     * d_write_index still pointing to the beginning of the completed write.
+     */
+    virtual void commit_write([[maybe_unused]] int nitems) {}
+
+    /*!
      * \brief Called after the transfer type has been successfully assigned.
      *
      * Derived buffer classes can override this to perform deferred

@@ -14,6 +14,7 @@
 
 #include "local_sighandler.h"
 #include "vmcircbuf.h"
+#include "vmcircbuf_emulated.h"
 #include "vmcircbuf_prefs.h"
 #include <string_view>
 #include <stdexcept>
@@ -43,6 +44,14 @@ vmcircbuf_factory* vmcircbuf_sysconfig::get_default_factory()
 {
     if (s_default_factory)
         return s_default_factory;
+
+#ifdef __EMSCRIPTEN__
+    // WebAssembly has one flat linear memory and cannot create virtual aliases.
+    // Use the software-coherent 2N-byte backend directly instead of probing mmap,
+    // shared-memory, and temporary-file implementations that cannot work there.
+    s_default_factory = gr::vmcircbuf_emulated_factory::singleton();
+    return s_default_factory;
+#endif
 
     bool verbose = false;
 
@@ -83,19 +92,30 @@ std::vector<vmcircbuf_factory*> vmcircbuf_sysconfig::all_factories()
 {
     std::vector<vmcircbuf_factory*> result;
 
+#ifdef __EMSCRIPTEN__
+    result.push_back(gr::vmcircbuf_emulated_factory::singleton());
+#else
     result.push_back(gr::vmcircbuf_createfilemapping_factory::singleton());
 #ifdef TRY_SHM_VMCIRCBUF
     result.push_back(gr::vmcircbuf_sysv_shm_factory::singleton());
     result.push_back(gr::vmcircbuf_mmap_shm_open_factory::singleton());
 #endif
     result.push_back(gr::vmcircbuf_mmap_tmpfile_factory::singleton());
+#endif
 
     return result;
 }
 
 void vmcircbuf_sysconfig::set_default_factory(vmcircbuf_factory* f)
 {
-    gr::vmcircbuf_prefs::set(FACTORY_PREF_KEY, f->name());
+    set_default_factory(f, true);
+}
+
+void vmcircbuf_sysconfig::set_default_factory(vmcircbuf_factory* f, bool persist)
+{
+    if (persist) {
+        gr::vmcircbuf_prefs::set(FACTORY_PREF_KEY, f->name());
+    }
     s_default_factory = f;
 }
 
@@ -104,11 +124,12 @@ void vmcircbuf_sysconfig::set_default_factory(vmcircbuf_factory* f)
 //		    test code for vmcircbuf factories
 // ------------------------------------------------------------------------
 
-static void init_buffer(const vmcircbuf& c, int counter, int size)
+static void init_buffer(vmcircbuf& c, int counter, int size)
 {
     unsigned int* p = (unsigned int*)c.pointer_to_first_copy();
     for (unsigned int i = 0; i < size / sizeof(int); i++)
         p[i] = counter + i;
+    c.commit_write(0, size);
 }
 
 static bool check_mapping(

@@ -99,6 +99,7 @@ add_library(
     transfer_type.cc
     vmcircbuf.cc
     vmcircbuf_createfilemapping.cc
+    vmcircbuf_emulated.cc
     vmcircbuf_mmap_shm_open.cc
     vmcircbuf_mmap_tmpfile.cc
     vmcircbuf_prefs.cc
@@ -305,11 +306,11 @@ endif(MSVC)
 # Can manually set with -DTRY_SHM_VMCIRCBUF=0|1
 ########################################################################
 
-if(WIN32)
+if(WIN32 OR EMSCRIPTEN)
     option(TRY_SHM_VMCIRCBUF "Try SHM VMCIRCBUF" OFF)
-else(WIN32)
+else()
     option(TRY_SHM_VMCIRCBUF "Try SHM VMCIRCBUF" ON)
-endif(WIN32)
+endif()
 
 message(STATUS "TRY_SHM_VMCIRCBUF set to ${TRY_SHM_VMCIRCBUF}.")
 
