@@ -47,7 +47,7 @@ templates:
 cpp_templates:
     includes: ['#include <gnuradio/blocks/tagged_stream_multiply_length.h>']
     declarations: 'blocks::tagged_stream_multiply_length::sptr ${id};'
-    make: 'this->${id} = blocks.tagged_stream_multiply_length(${type.size}*${vlen}, ${lengthtagname},
+    make: 'this->${id} = blocks::tagged_stream_multiply_length::make(${type.size}*${vlen}, ${lengthtagname},
         ${c});'
     callbacks:
     - set_scalar(${c})

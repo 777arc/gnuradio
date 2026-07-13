@@ -26,7 +26,7 @@ templates:
 cpp_templates:
     includes: ['#include <gnuradio/dtv/catv_trellis_enc_bb.h>']
     declarations: 'dtv::catv_trellis_enc_bb::sptr ${id};'
-    make: 'dtv::catv_trellis_enc_bb::make(${constellation.val});'
+    make: 'this->${id} = dtv::catv_trellis_enc_bb::make(${constellation.val});'
     link: ['gnuradio::gnuradio-dtv']
     translations:
         dtv\.: "dtv::"

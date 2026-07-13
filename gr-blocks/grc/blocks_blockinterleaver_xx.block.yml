@@ -39,8 +39,8 @@ templates:
     make: blocks.blockinterleaver_${type.fcn}(${interleaver_indices}, ${interleaver_mode.fcn}, ${ is_packed if type == 'byte' else False })
 
 cpp_templates:
-    includes: ['#include <gnuradio/blockinterleaver_xx.h>']
+    includes: ['#include <gnuradio/blocks/blockinterleaver_xx.h>']
     declarations: 'blocks::blockinterleaver_${type.fcn}::sptr ${id};'
-    make: 'this->${id} = blocks::blockinterleaver_${type.fcn}::make(${interleaver_indices}, ${interleaver_mode.fcn}, ${ is_packed if type == "byte" else false });'
+    make: 'this->${id} = blocks::blockinterleaver_${type.fcn}::make(${interleaver_indices}, ${interleaver_mode.fcn}, ${ is_packed if type == "byte" else False });'
 
 file_format: 1

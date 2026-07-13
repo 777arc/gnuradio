@@ -69,7 +69,6 @@ cpp_templates:
             ${decim},
             taps,
             ${channel},
-            ${atten},
             ${fft_rot},
             ${fft_filts});
         this->${id}.declare_sample_delay(${samp_delay});
