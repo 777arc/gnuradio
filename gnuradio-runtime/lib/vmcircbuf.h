@@ -45,6 +45,22 @@ public:
     // ACCESSORS
     void* pointer_to_first_copy() const { return d_base; }
     void* pointer_to_second_copy() const { return d_base + d_size; }
+
+    /*!
+     * \brief Make a completed write visible through both copies.
+     *
+     * True virtual-memory aliases are coherent without any work, so the default
+     * implementation is a no-op. Backends that emulate the alias with two physical
+     * copies override this method and synchronize the written range before the
+     * buffer publishes its updated write index.
+     *
+     * \param offset byte offset from pointer_to_first_copy()
+     * \param size number of bytes written; the range may cross into the second copy
+     */
+    virtual void commit_write([[maybe_unused]] size_t offset,
+                              [[maybe_unused]] size_t size)
+    {
+    }
 };
 
 /*!
@@ -98,6 +114,14 @@ public:
 
     // make this factory the default
     static void set_default_factory(vmcircbuf_factory* f);
+
+    /*!
+     * \brief Set the default factory, optionally without changing user preferences.
+     *
+     * The non-persistent form is primarily useful for exercising a specific backend
+     * in tests.
+     */
+    static void set_default_factory(vmcircbuf_factory* f, bool persist);
 
     /*!
      * \brief  Does this factory really work?

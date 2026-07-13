@@ -131,6 +131,9 @@ void buffer::update_write_pointer(int nitems)
     unsigned orig_wr_idx = d_write_index;
 #endif
 
+    // Backends with software-coherent mirrors must synchronize the completed
+    // range before advancing the index makes those items visible to readers.
+    commit_write(nitems);
     d_write_index = index_add(d_write_index, nitems);
     d_abs_write_offset += nitems;
 
