@@ -204,6 +204,10 @@ void TimeDomainDisplayPlot::plotNewData(const std::vector<const double*> dataPoi
                 }
             }
 
+#ifdef __EMSCRIPTEN__
+            _updateWasmRenderData();
+#endif
+
             // Detach and delete any tags that were plotted last time
             for (unsigned int n = 0; n < d_nplots; ++n) {
                 for (size_t i = 0; i < d_tag_markers[n].size(); i++) {
@@ -404,7 +408,74 @@ void TimeDomainDisplayPlot::_resetXAxisPoints()
     d_zoomer->zoom(zbase);
     d_zoomer->setZoomBase(zbase);
     d_zoomer->zoom(0);
+
+#ifdef __EMSCRIPTEN__
+    _updateWasmRenderData();
+#endif
 }
+
+#ifdef __EMSCRIPTEN__
+void TimeDomainDisplayPlot::_updateWasmRenderData()
+{
+    // QPainter's polyline cost is high in the browser even after disabling
+    // antialiasing. Keep the complete sample vectors for tags and autoscaling, but
+    // give Qwt a bounded min/max envelope that preserves short-lived peaks.
+    constexpr size_t max_rendered_points = 256;
+
+    if (d_numPoints <= static_cast<int64_t>(max_rendered_points)) {
+        for (unsigned int plot = 0; plot < d_nplots; ++plot) {
+            d_plot_curve[plot]->setRawSamples(
+                d_xdata.data(), d_ydata[plot].data(), d_numPoints);
+        }
+        return;
+    }
+
+    const size_t bucket_count = max_rendered_points / 2;
+    const size_t num_points = static_cast<size_t>(d_numPoints);
+    d_render_xdata.resize(d_nplots);
+    d_render_ydata.resize(d_nplots);
+
+    for (unsigned int plot = 0; plot < d_nplots; ++plot) {
+        auto& render_x = d_render_xdata[plot];
+        auto& render_y = d_render_ydata[plot];
+        render_x.clear();
+        render_y.clear();
+        render_x.reserve(max_rendered_points);
+        render_y.reserve(max_rendered_points);
+
+        for (size_t bucket = 0; bucket < bucket_count; ++bucket) {
+            const size_t begin = bucket * num_points / bucket_count;
+            const size_t end = (bucket + 1) * num_points / bucket_count;
+
+            size_t min_index = begin;
+            size_t max_index = begin;
+            for (size_t index = begin + 1; index < end; ++index) {
+                if (d_ydata[plot][index] < d_ydata[plot][min_index]) {
+                    min_index = index;
+                }
+                if (d_ydata[plot][index] > d_ydata[plot][max_index]) {
+                    max_index = index;
+                }
+            }
+
+            if (min_index == max_index) {
+                render_x.push_back(d_xdata[min_index]);
+                render_y.push_back(d_ydata[plot][min_index]);
+            } else {
+                const size_t first = std::min(min_index, max_index);
+                const size_t second = std::max(min_index, max_index);
+                render_x.push_back(d_xdata[first]);
+                render_y.push_back(d_ydata[plot][first]);
+                render_x.push_back(d_xdata[second]);
+                render_y.push_back(d_ydata[plot][second]);
+            }
+        }
+
+        d_plot_curve[plot]->setRawSamples(
+            render_x.data(), render_y.data(), render_x.size());
+    }
+}
+#endif
 
 void TimeDomainDisplayPlot::_autoScale(double bottom, double top)
 {
