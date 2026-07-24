@@ -6,4 +6,4 @@
 
 ## Git
 
-- Never make commits, and never ask to. Leave all committing to the user.
+- Never make commits, and never ask to. Leave all committing to the user. Don't worry about uncommitted changes in general.
