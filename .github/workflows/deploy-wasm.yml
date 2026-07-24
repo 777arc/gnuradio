@@ -90,6 +90,11 @@ jobs:
 
       # --- Assemble the static site and deploy ---
       - name: Assemble site
+        env:
+          # Public base URL of the R2 bucket holding oversized recordings.
+          # Set as a repo variable (Settings > Secrets and variables > Actions >
+          # Variables). If empty, oversized recordings are omitted.
+          RECORDINGS_R2_BASE: ${{ vars.RECORDINGS_R2_BASE }}
         run: node wasm/scripts/assemble-site.mjs ./site
 
       - name: Deploy to Cloudflare Pages
