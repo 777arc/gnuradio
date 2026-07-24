@@ -12,3 +12,5 @@ wasm/chrome-headless-shell/
 wasm/node_modules/
 wasm/editor/node_modules/
 wasm/editor/dist/
+wasm-deps.tar.zst
+site/
