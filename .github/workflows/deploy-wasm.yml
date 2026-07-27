@@ -183,6 +183,23 @@ jobs:
       - name: ccache stats
         run: ccache --show-stats
 
+      # --- Prove the build RUNS, not just that it linked ----------------------
+      # A cleanly linked runner can still be dead on arrival: an unpatched VOLK
+      # once made volk_malloc() return NULL under Emscripten, so every flowgraph
+      # threw std::bad_alloc while CI stayed green and the deployed app could not
+      # run anything. These run real flowgraphs in headless Chromium and check
+      # that samples actually move, so that class of failure blocks the deploy.
+      - name: Smoke-test the runner
+        run: |
+          # --path gets a "chrome-headless-shell/<platform-version>/..." tree
+          # appended to it, so point it at wasm/ to land on the layout the test
+          # harnesses look for: wasm/chrome-headless-shell/<ver>/.../binary
+          npx --yes @puppeteer/browsers install chrome-headless-shell@stable \
+            --path "$GITHUB_WORKSPACE/wasm"
+          (cd wasm && npm ci)
+          node wasm/test_smoke.mjs           # flowgraphs run and produce samples
+          node wasm/test_lazy_scenarios.mjs  # on-demand side modules still load
+
       - name: Save ccache
         uses: actions/cache/save@v4
         with:
