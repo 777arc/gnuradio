@@ -307,6 +307,13 @@ void set_thread_name(gr_thread_t thread, std::string name)
         } __except (EXCEPTION_EXECUTE_HANDLER) {
         }
     }();
+#elif defined(__GR_TARGET_WASM__)
+    // Emscripten's pthreads have no thread-naming API. The name is purely a
+    // debugging nicety, so skip it silently: logging an error here fires once per
+    // block thread on every flowgraph, and the WASM runner surfaces GR's error
+    // log in its UI, which would make every successful run look like a failure.
+    (void)thread;
+    (void)name;
 #else
     thread_logger().error("function {}{} not implemented on this platform",
                           __func__,
