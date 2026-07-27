@@ -54,6 +54,7 @@
   - digital_ofdm_rx
   - digital_ofdm_serializer_vcc
   - digital_ofdm_tx
+  - digital_ofdm_tx_wasm
 - Symbol Coding:
   - digital_binary_slicer_fb
   - digital_chunks_to_symbols_xx
