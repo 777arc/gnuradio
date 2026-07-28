@@ -3,8 +3,3 @@
 *.pyo
 build*/
 .venv/*
-# The browser application moved to 777arc/gnuradio-world. Ignore any retained
-# local build/recording data from the former in-tree checkout.
-wasm/
-wasm-deps.tar.zst
-site/
