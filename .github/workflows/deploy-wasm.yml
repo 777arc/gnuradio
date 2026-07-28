@@ -50,7 +50,10 @@ jobs:
     # A cold run builds Boost/FFTW/GMP/Qwt/VOLK plus all of GNU Radio on 4 cores.
     timeout-minutes: 180
     steps:
+      # submodules: the IQEngine client, which ships at /iqengine/ on the site.
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - uses: actions/setup-node@v4
         with:
@@ -179,6 +182,15 @@ jobs:
              && cmake --build build)
 
           (cd wasm/editor && npm ci && npm run build)
+
+          # IQEngine client, served from /iqengine/ (its router reads the same
+          # base as its basename), so the recordings tab can link into it.
+          # Feature flags trim it to what this site uses: no Python snippet
+          # editor (it needs Pyodide from a CDN, which this cross-origin-isolated
+          # site will not load) and no Cyclostationary tab.
+          (cd iqengine/client && npm ci && \
+             IQENGINE_FEATURE_FLAGS='{"displayPythonSnippet":false,"displayCyclostationaryTab":false,"linkLogoToBrowser":false}' \
+             npm run build -- --base=/iqengine/)
 
       - name: ccache stats
         run: ccache --show-stats

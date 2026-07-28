@@ -1,0 +1,7 @@
+[submodule "iqengine"]
+	path = iqengine
+	url = https://github.com/iqengine/iqengine.git
+	# Pinned to a commit on this branch (the 'url' data source and the sub-path
+	# hosting fixes) until it merges upstream; the branch name only matters to
+	# `git submodule update --remote`, everything else follows the recorded SHA.
+	branch = url-datasource
