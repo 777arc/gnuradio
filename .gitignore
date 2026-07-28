@@ -3,14 +3,8 @@
 *.pyo
 build*/
 .venv/*
-wasm/.venv
-wasm/deps/src/
-wasm/deps/build/
-wasm/sysroot/
-wasm/gr/
-wasm/chrome-headless-shell/
-wasm/node_modules/
-wasm/editor/node_modules/
-wasm/editor/dist/
+# The browser application moved to 777arc/gnuradio-world. Ignore any retained
+# local build/recording data from the former in-tree checkout.
+wasm/
 wasm-deps.tar.zst
 site/
