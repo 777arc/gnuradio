@@ -5,3 +5,15 @@
 	# hosting fixes) until it merges upstream; the branch name only matters to
 	# `git submodule update --remote`, everything else follows the recorded SHA.
 	branch = url-datasource
+[submodule "gr-foo"]
+	path = gr-foo
+	url = https://github.com/777arc/gr-foo.git
+	branch = wasm-support
+[submodule "gr-dvbs2"]
+	path = gr-dvbs2
+	url = https://github.com/777arc/gr-dvbs2.git
+	branch = wasm-support
+[submodule "gr-dvbs2rx"]
+	path = gr-dvbs2rx
+	url = https://github.com/777arc/gr-dvbs2rx.git
+	branch = wasm-support
