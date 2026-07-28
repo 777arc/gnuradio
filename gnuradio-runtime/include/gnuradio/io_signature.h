@@ -20,14 +20,8 @@
 #include <string_view>
 #include <memory>
 
-#include <gnuradio/buffer_type.h>
-// For testing purposes, force single mapped buffers to make all QA use them
-// #define FORCE_SINGLE_MAPPED
-#ifdef FORCE_SINGLE_MAPPED
-#include <gnuradio/host_buffer.h>
-#else
 #include <gnuradio/buffer_double_mapped.h>
-#endif
+#include <gnuradio/buffer_type.h>
 
 
 namespace gr {
@@ -51,11 +45,7 @@ class GR_RUNTIME_API io_signature
 public:
     typedef std::shared_ptr<io_signature> sptr;
 
-#ifdef FORCE_SINGLE_MAPPED
-    using default_buftype = host_buffer;
-#else
     using default_buftype = buffer_double_mapped;
-#endif
 
     static constexpr int IO_INFINITE = -1;
 

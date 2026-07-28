@@ -271,24 +271,9 @@ void buffer_single_mapped::update_reader_block_history(unsigned history, int del
 
     // Only attempt to set has history flag if it is not already set
     if (!d_has_history) {
-#ifdef FORCE_SINGLE_MAPPED
-        // WASM forces single-mapped buffers even for blocks that on desktop would
-        // get the double-mapped vmcircbuf. Above, this function unconditionally
-        // reserves the history slot (d_write_index = d_max_reader_history - 1) and
-        // space_available() subtracts (history-1). The "real history" exception
-        // below leaves d_has_history false for delay/sample_delay readers (where
-        // history-1 == delay), yet the slot is still reserved — so once the buffer
-        // fills to bufsize-(history-1) the writer's realign is gated off
-        // (output_blkd_cb_ready needs d_has_history when space==0) and the graph
-        // deadlocks at the first buffer wrap. Keep the flag consistent with the
-        // reservation so the realign path can reset the buffer. See
-        // wasm/docs/diagnostics.md for the full root-cause writeup.
-        d_has_history = (d_max_reader_history > 1);
-#else
         // Blocks that set delay may set history to delay + 1 but this is
         // not "real" history
         d_has_history = ((static_cast<int>(history) - 1) != delay);
-#endif
     }
 }
 
